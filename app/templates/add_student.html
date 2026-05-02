@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Add student — Student Management{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title" id="add-student-heading">Add New Student</h1>
+    <p class="page-sub">Enter the academic details to create a new record.</p>
+  </div>
+</div>
+
+<div class="card form-card">
+  <form method="POST" action="{{ url_for('add_student') }}" id="add-student-form" novalidate>
+    <div class="form-group">
+      <label for="name" class="form-label">Full name</label>
+      <input type="text" class="form-input" id="name" name="name"
+             placeholder="e.g. Ada Lovelace" required/>
+    </div>
+
+    <div class="form-group">
+      <label for="email" class="form-label">Email address</label>
+      <input type="email" class="form-input" id="email" name="email"
+             placeholder="student@example.edu" required/>
+    </div>
+
+    <div class="form-group">
+      <label for="department" class="form-label">Department</label>
+      <select class="form-select" id="department" name="department" required>
+        <option value="">Select department…</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Software Engineering">Software Engineering</option>
+        <option value="Electrical Engineering">Electrical Engineering</option>
+        <option value="Mechanical Engineering">Mechanical Engineering</option>
+        <option value="Business Administration">Business Administration</option>
+        <option value="Artificial Intelligence">Artificial Intelligence</option>
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="semester" class="form-label">Semester (1–8)</label>
+        <input type="number" class="form-input" id="semester" name="semester"
+               min="1" max="8" placeholder="5" required/>
+      </div>
+      <div class="form-group">
+        <label for="cgpa" class="form-label">CGPA (0.00–4.00)</label>
+        <input type="number" class="form-input" id="cgpa" name="cgpa"
+               min="0" max="4" step="0.01" placeholder="3.50" required/>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="btn-submit-student">Save student</button>
+      <a href="{{ url_for('students') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

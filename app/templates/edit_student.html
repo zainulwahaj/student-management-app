@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Edit student — Student Management{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title" id="edit-student-heading">Edit Student</h1>
+    <p class="page-sub">Update <strong>{{ student.name }}</strong>'s record.</p>
+  </div>
+</div>
+
+<div class="card form-card">
+  <form method="POST" action="{{ url_for('edit_student', student_id=student.id) }}"
+        id="edit-student-form" novalidate>
+    <div class="form-group">
+      <label for="name" class="form-label">Full name</label>
+      <input type="text" class="form-input" id="name" name="name"
+             value="{{ student.name }}" required/>
+    </div>
+
+    <div class="form-group">
+      <label for="email" class="form-label">Email address</label>
+      <input type="email" class="form-input" id="email" name="email"
+             value="{{ student.email }}" required/>
+    </div>
+
+    <div class="form-group">
+      <label for="department" class="form-label">Department</label>
+      <select class="form-select" id="department" name="department" required>
+        <option value="">Select department…</option>
+        {% for dept in ["Computer Science","Software Engineering","Electrical Engineering",
+                        "Mechanical Engineering","Business Administration","Artificial Intelligence"] %}
+          <option value="{{ dept }}" {% if student.department == dept %}selected{% endif %}>
+            {{ dept }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="semester" class="form-label">Semester (1–8)</label>
+        <input type="number" class="form-input" id="semester" name="semester"
+               min="1" max="8" value="{{ student.semester }}" required/>
+      </div>
+      <div class="form-group">
+        <label for="cgpa" class="form-label">CGPA (0.00–4.00)</label>
+        <input type="number" class="form-input" id="cgpa" name="cgpa"
+               min="0" max="4" step="0.01" value="{{ student.cgpa }}" required/>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="btn-update-student">Save changes</button>
+      <a href="{{ url_for('students') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

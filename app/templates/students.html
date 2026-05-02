@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Students — Student Management{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title" id="students-heading">Students</h1>
+    <p class="page-sub">
+      {% if students %}{{ students|length }} record{{ 's' if students|length != 1 }}{% else %}No records yet{% endif %}
+      {% if query %} matching “{{ query }}”{% endif %}.
+    </p>
+  </div>
+  <a href="{{ url_for('add_student') }}" class="btn btn-primary" id="btn-add-student">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Add student
+  </a>
+</div>
+
+<form method="GET" action="{{ url_for('students') }}" class="toolbar" id="search-form">
+  <input type="text" class="form-input" name="q" id="search-input"
+         placeholder="Search by name or department…" value="{{ query }}"/>
+  <button type="submit" class="btn btn-secondary" id="btn-search">Search</button>
+  {% if query %}
+    <a href="{{ url_for('students') }}" class="btn btn-ghost" id="btn-clear-search">Clear</a>
+  {% endif %}
+</form>
+
+{% if students %}
+  <div class="table-card">
+    <table class="table" id="students-table">
+      <thead>
+        <tr>
+          <th style="width:48px">#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th style="width:100px">Semester</th>
+          <th style="width:90px">CGPA</th>
+          <th style="width:140px;text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+          <tr class="student-row">
+            <td class="num">{{ loop.index }}</td>
+            <td class="student-name" style="font-weight:500">{{ s.name }}</td>
+            <td class="text-muted">{{ s.email }}</td>
+            <td class="student-dept"><span class="badge">{{ s.department }}</span></td>
+            <td class="num">Sem {{ s.semester }}</td>
+            <td><span class="cgpa-pill">{{ s.cgpa }}</span></td>
+            <td>
+              <div class="row-actions" style="justify-content:flex-end">
+                <a href="{{ url_for('edit_student', student_id=s.id) }}"
+                   class="btn btn-secondary btn-sm btn-edit">Edit</a>
+                <form class="inline-form" method="POST"
+                      action="{{ url_for('delete_student', student_id=s.id) }}"
+                      onsubmit="return confirm('Delete this student?')">
+                  <button type="submit" class="btn btn-danger btn-sm btn-delete">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty" id="no-students-msg">
+    <div class="empty-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </div>
+    <div class="empty-title">No students found</div>
+    <p>
+      {% if query %}
+        Try a different keyword or <a href="{{ url_for('students') }}">clear the search</a>.
+      {% else %}
+        <a href="{{ url_for('add_student') }}">Add your first student</a> to get started.
+      {% endif %}
+    </p>
+  </div>
+{% endif %}
+{% endblock %}

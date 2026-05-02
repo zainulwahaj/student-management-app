@@ -1,0 +1,68 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: sms_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: students_db
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - sms_net
+
+  app:
+    build:
+      context: ./app
+    image: sms_app:latest
+    container_name: sms_app
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: students_db
+      SECRET_KEY: "change-me-in-real-deployments"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    networks:
+      - sms_net
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:5000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  tests:
+    build:
+      context: ./tests
+    image: sms_tests:latest
+    container_name: sms_tests
+    environment:
+      APP_URL: http://app:5000
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - ./tests/reports:/tests/reports
+    networks:
+      - sms_net
+    profiles:
+      - test
+
+networks:
+  sms_net:
+    driver: bridge
+
+volumes:
+  db_data:

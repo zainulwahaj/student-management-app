@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Test reports (written here by Jenkins at runtime — not committed)
+tests/reports/
+
+# The tests/ folder itself is a *separate* repo cloned by Jenkins.
+# Do not commit it to the app repo.
+tests/
+
+# macOS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log

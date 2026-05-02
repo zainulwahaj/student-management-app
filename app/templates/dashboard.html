@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Student Management{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title" id="dashboard-heading">Dashboard</h1>
+    <p class="page-sub">An at-a-glance view of your roster.</p>
+  </div>
+  <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    Add student
+  </a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-label">Total students</div>
+    <div class="stat-value" id="total-students">{{ total }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Average CGPA</div>
+    <div class="stat-value" id="avg-cgpa">{{ avg_cgpa }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Departments</div>
+    <div class="stat-value" id="total-departments">{{ depts | length }}</div>
+  </div>
+</div>
+
+<div class="table-card">
+  {% if depts %}
+    <table class="table" id="dept-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th style="text-align:right">Students</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dept, count in depts %}
+          <tr>
+            <td>{{ dept }}</td>
+            <td style="text-align:right" class="num">{{ count }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty">
+      <div class="empty-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="empty-title">No students yet</div>
+      <p id="no-data-msg">
+        Get started by <a href="{{ url_for('add_student') }}">adding your first student</a>.
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
