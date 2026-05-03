@@ -10,7 +10,7 @@ pipeline {
     environment {
         COMPOSE_PROJECT_NAME = 'sms'
         // ── Update this to your test repo URL before running ──────────────
-        TEST_REPO_URL = 'https://github.com/YOUR_USERNAME/student-management-tests.git'
+        TEST_REPO_URL = 'https://github.com/zainulwahaj/student-management-tests.git'
         TEST_REPO_BRANCH = 'main'
     }
 
