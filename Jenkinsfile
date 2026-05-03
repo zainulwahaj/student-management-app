@@ -44,7 +44,7 @@ pipeline {
         stage('Build images') {
             steps {
                 // Builds both the app image (./app) and the test image (./tests)
-                sh 'docker compose build --pull'
+                sh 'docker compose build --pull app tests'
             }
         }
 
@@ -119,8 +119,7 @@ pipeline {
         }
 
         failure {
-            echo 'Build failed — tearing down containers.'
-            sh 'docker compose down -v --remove-orphans || true'
+            echo 'Build failed — leaving app and DB containers running for inspection.'
         }
 
         success {
