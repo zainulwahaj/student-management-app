@@ -100,6 +100,53 @@ pipeline {
                 def color   = (status == 'SUCCESS') ? '#1a7f37' : '#cf222e'
                 def emoji   = (status == 'SUCCESS') ? '✅' : '❌'
                 def subject = "${emoji} [Jenkins] ${env.JOB_NAME} #${env.BUILD_NUMBER} — ${status}"
+
+                def testSummaryHtml = '<p><b>Test summary:</b> JUnit report was not generated.</p>'
+                if (fileExists('tests/reports/junit.xml')) {
+                    def junitXml = readFile('tests/reports/junit.xml')
+                    def suiteTags = junitXml =~ /<testsuite\b[^>]*>/
+                    int tests = 0
+                    int failures = 0
+                    int errors = 0
+                    int skipped = 0
+                    double seconds = 0
+
+                    while (suiteTags.find()) {
+                        def tag = suiteTags.group(0)
+                        def attr = { name ->
+                            def matcher = tag =~ "\\b${name}=\"([^\"]*)\""
+                            matcher.find() ? matcher.group(1) : '0'
+                        }
+                        tests += attr('tests') as int
+                        failures += attr('failures') as int
+                        errors += attr('errors') as int
+                        skipped += attr('skipped') as int
+                        seconds += attr('time') as double
+                    }
+
+                    if (tests > 0) {
+                        int passed = tests - failures - errors - skipped
+                        def secondsLabel = String.format('%.2fs', seconds)
+                        testSummaryHtml = """
+                          <h3 style="margin:18px 0 8px">Test Summary</h3>
+                          <table cellpadding="6" style="border-collapse:collapse;width:100%;border:1px solid #ddd">
+                            <tr>
+                              <td><b>Total</b></td><td>${tests}</td>
+                              <td><b>Passed</b></td><td style="color:#1a7f37">${passed}</td>
+                            </tr>
+                            <tr>
+                              <td><b>Failed</b></td><td style="color:#cf222e">${failures}</td>
+                              <td><b>Errors</b></td><td style="color:#cf222e">${errors}</td>
+                            </tr>
+                            <tr>
+                              <td><b>Skipped</b></td><td>${skipped}</td>
+                              <td><b>Test time</b></td><td>${secondsLabel}</td>
+                            </tr>
+                          </table>
+                        """.stripIndent()
+                    }
+                }
+
                 def body    = """
                     <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
                                 max-width:600px;padding:20px;border:1px solid #ddd;border-radius:8px">
@@ -111,6 +158,7 @@ pipeline {
                         <tr><td><b>Pushed by</b></td><td>${env.COMMITTER_NAME} &lt;${env.COMMITTER_EMAIL}&gt;</td></tr>
                         <tr><td><b>Duration</b></td><td>${currentBuild.durationString}</td></tr>
                       </table>
+                      ${testSummaryHtml}
                       <p style="margin-top:16px">
                         <a href="${env.BUILD_URL}" style="background:${color};color:#fff;padding:8px 14px;
                            border-radius:6px;text-decoration:none">Open build in Jenkins →</a>
