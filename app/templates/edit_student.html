@@ -12,6 +12,7 @@
 <div class="card form-card">
   <form method="POST" action="{{ url_for('edit_student', student_id=student.id) }}"
         id="edit-student-form" novalidate>
+
     <div class="form-group">
       <label for="name" class="form-label">Full name</label>
       <input type="text" class="form-input" id="name" name="name"
@@ -26,15 +27,23 @@
 
     <div class="form-group">
       <label for="department" class="form-label">Department</label>
-      <select class="form-select" id="department" name="department" required>
-        <option value="">Select department…</option>
-        {% for dept in ["Computer Science","Software Engineering","Electrical Engineering",
-                        "Mechanical Engineering","Business Administration","Artificial Intelligence"] %}
-          <option value="{{ dept }}" {% if student.department == dept %}selected{% endif %}>
-            {{ dept }}
-          </option>
-        {% endfor %}
-      </select>
+      <div class="select-wrap">
+        <select class="form-select" id="department" name="department" required>
+          <option value="">Select department…</option>
+          {% for dept in ["Computer Science","Software Engineering","Electrical Engineering",
+                          "Mechanical Engineering","Business Administration","Artificial Intelligence"] %}
+            <option value="{{ dept }}" {% if student.department == dept %}selected{% endif %}>
+              {{ dept }}
+            </option>
+          {% endfor %}
+        </select>
+        <span class="select-arrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="#78716c" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </span>
+      </div>
     </div>
 
     <div class="form-grid">
@@ -54,6 +63,7 @@
       <button type="submit" class="btn btn-primary" id="btn-update-student">Save changes</button>
       <a href="{{ url_for('students') }}" class="btn btn-ghost">Cancel</a>
     </div>
+
   </form>
 </div>
 {% endblock %}

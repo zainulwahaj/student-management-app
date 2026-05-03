@@ -11,6 +11,7 @@
 
 <div class="card form-card">
   <form method="POST" action="{{ url_for('add_student') }}" id="add-student-form" novalidate>
+
     <div class="form-group">
       <label for="name" class="form-label">Full name</label>
       <input type="text" class="form-input" id="name" name="name"
@@ -25,15 +26,23 @@
 
     <div class="form-group">
       <label for="department" class="form-label">Department</label>
-      <select class="form-select" id="department" name="department" required>
-        <option value="">Select department…</option>
-        <option value="Computer Science">Computer Science</option>
-        <option value="Software Engineering">Software Engineering</option>
-        <option value="Electrical Engineering">Electrical Engineering</option>
-        <option value="Mechanical Engineering">Mechanical Engineering</option>
-        <option value="Business Administration">Business Administration</option>
-        <option value="Artificial Intelligence">Artificial Intelligence</option>
-      </select>
+      <div class="select-wrap">
+        <select class="form-select" id="department" name="department" required>
+          <option value="">Select department…</option>
+          <option value="Computer Science">Computer Science</option>
+          <option value="Software Engineering">Software Engineering</option>
+          <option value="Electrical Engineering">Electrical Engineering</option>
+          <option value="Mechanical Engineering">Mechanical Engineering</option>
+          <option value="Business Administration">Business Administration</option>
+          <option value="Artificial Intelligence">Artificial Intelligence</option>
+        </select>
+        <span class="select-arrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="#78716c" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </span>
+      </div>
     </div>
 
     <div class="form-grid">
@@ -53,6 +62,7 @@
       <button type="submit" class="btn btn-primary" id="btn-submit-student">Save student</button>
       <a href="{{ url_for('students') }}" class="btn btn-ghost">Cancel</a>
     </div>
+
   </form>
 </div>
 {% endblock %}

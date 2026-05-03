@@ -44,7 +44,7 @@
         {% for dept, count in depts %}
           <tr>
             <td>{{ dept }}</td>
-            <td style="text-align:right" class="num">{{ count }}</td>
+            <td class="td-num" style="text-align:right">{{ count }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -59,7 +59,7 @@
         </svg>
       </div>
       <div class="empty-title">No students yet</div>
-      <p id="no-data-msg">
+      <p id="no-data-msg" style="font-size:.875rem">
         Get started by <a href="{{ url_for('add_student') }}">adding your first student</a>.
       </p>
     </div>

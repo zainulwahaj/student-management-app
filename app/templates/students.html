@@ -6,8 +6,7 @@
   <div>
     <h1 class="page-title" id="students-heading">Students</h1>
     <p class="page-sub">
-      {% if students %}{{ students|length }} record{{ 's' if students|length != 1 }}{% else %}No records yet{% endif %}
-      {% if query %} matching “{{ query }}”{% endif %}.
+      {% if students %}{{ students|length }} record{{ 's' if students|length != 1 }}{% else %}No records yet{% endif %}{% if query %} matching "{{ query }}"{% endif %}.
     </p>
   </div>
   <a href="{{ url_for('add_student') }}" class="btn btn-primary" id="btn-add-student">
@@ -45,14 +44,14 @@
       <tbody>
         {% for s in students %}
           <tr class="student-row">
-            <td class="num">{{ loop.index }}</td>
+            <td class="td-num">{{ loop.index }}</td>
             <td class="student-name" style="font-weight:500">{{ s.name }}</td>
-            <td class="text-muted">{{ s.email }}</td>
+            <td style="color:var(--color-text-muted)">{{ s.email }}</td>
             <td class="student-dept"><span class="badge">{{ s.department }}</span></td>
-            <td class="num">Sem {{ s.semester }}</td>
-            <td><span class="cgpa-pill">{{ s.cgpa }}</span></td>
+            <td class="td-num">Sem {{ s.semester }}</td>
+            <td><span class="cgpa-pill">{{ "%.2f"|format(s.cgpa) }}</span></td>
             <td>
-              <div class="row-actions" style="justify-content:flex-end">
+              <div class="row-actions">
                 <a href="{{ url_for('edit_student', student_id=s.id) }}"
                    class="btn btn-secondary btn-sm btn-edit">Edit</a>
                 <form class="inline-form" method="POST"
@@ -76,7 +75,7 @@
       </svg>
     </div>
     <div class="empty-title">No students found</div>
-    <p>
+    <p style="font-size:.875rem">
       {% if query %}
         Try a different keyword or <a href="{{ url_for('students') }}">clear the search</a>.
       {% else %}
