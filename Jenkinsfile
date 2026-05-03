@@ -55,18 +55,26 @@ pipeline {
                     docker compose up -d db app
                 '''
                 sh '''
-                    echo "Waiting for app to become healthy..."
-                    for i in $(seq 1 40); do
-                        STATUS=$(docker inspect -f '{{.State.Health.Status}}' sms_app 2>/dev/null || echo "starting")
-                        echo "  attempt $i: $STATUS"
-                        if [ "$STATUS" = "healthy" ]; then
-                            echo "App is healthy!"
+                    echo "Waiting for sms_app Docker health=healthy (required for compose run tests)..."
+                    for i in $(seq 1 100); do
+                        H=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' sms_app 2>/dev/null || echo "unknown")
+                        if curl -fsS --max-time 2 "http://127.0.0.1:5000/" >/dev/null 2>&1; then HTTP=ok; else HTTP=no; fi
+                        if [ "$H" = "healthy" ]; then
+                            echo "  attempt $i: healthy (host_http=$HTTP)"
                             exit 0
                         fi
-                        sleep 3
+                        if [ "$H" = "unhealthy" ]; then
+                            echo "  attempt $i: UNHEALTHY (host_http=$HTTP)"
+                            docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                            docker compose logs --tail=200 app
+                            exit 1
+                        fi
+                        echo "  attempt $i: health=$H host_http=$HTTP"
+                        sleep 2
                     done
-                    echo "App failed to become healthy. Dumping logs:"
-                    docker compose logs app
+                    echo "Timed out waiting for healthy."
+                    docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                    docker compose logs --tail=200 app
                     exit 1
                 '''
             }

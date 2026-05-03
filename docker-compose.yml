@@ -38,11 +38,11 @@ services:
     networks:
       - sms_net
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:5000/"]
-      interval: 30s      # was 5s — slow down so health checks don't compete with Selenium
-      timeout: 10s
-      start_period: 40s  # give gunicorn time to boot before checks begin
-      retries: 5
+      test: ["CMD", "curl", "-fsS", "--max-time", "4", "http://127.0.0.1:5000/"]
+      interval: 5s
+      timeout: 5s
+      start_period: 120s
+      retries: 24
 
   tests:
     build:
