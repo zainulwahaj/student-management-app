@@ -51,13 +51,14 @@ pipeline {
         stage('Deploy app + DB') {
             steps {
                 sh '''
-                    docker rm -f sms_db sms_app sms_tests 2>/dev/null || true
+                    docker compose down --remove-orphans || true
                     docker compose up -d db app
                 '''
                 sh '''
-                    echo "Waiting for sms_app Docker health=healthy (required for compose run tests)..."
+                    echo "Waiting for app Docker health=healthy (compose ps -q app)..."
                     for i in $(seq 1 100); do
-                        H=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' sms_app 2>/dev/null || echo "unknown")
+                        APP_CONTAINER=$(docker compose ps -q app)
+                        H=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$APP_CONTAINER" 2>/dev/null || echo "unknown")
                         if curl -fsS --max-time 2 "http://127.0.0.1:5000/" >/dev/null 2>&1; then HTTP=ok; else HTTP=no; fi
                         if [ "$H" = "healthy" ]; then
                             echo "  attempt $i: healthy (host_http=$HTTP)"
@@ -65,7 +66,7 @@ pipeline {
                         fi
                         if [ "$H" = "unhealthy" ]; then
                             echo "  attempt $i: UNHEALTHY (host_http=$HTTP)"
-                            docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                            docker inspect --format='{{json .State.Health}}' "$APP_CONTAINER" 2>/dev/null || true
                             docker compose logs --tail=200 app
                             exit 1
                         fi
@@ -73,7 +74,8 @@ pipeline {
                         sleep 2
                     done
                     echo "Timed out waiting for healthy."
-                    docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                    APP_CONTAINER=$(docker compose ps -q app)
+                    docker inspect --format='{{json .State.Health}}' "$APP_CONTAINER" 2>/dev/null || true
                     docker compose logs --tail=200 app
                     exit 1
                 '''

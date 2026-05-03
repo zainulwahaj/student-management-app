@@ -2,7 +2,6 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: sms_db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
@@ -21,7 +20,6 @@ services:
     build:
       context: ./app
     image: sms_app:latest
-    container_name: sms_app
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -48,7 +46,6 @@ services:
     build:
       context: ./tests
     image: sms_tests:latest
-    container_name: sms_tests
     shm_size: "2gb"
     environment:
       APP_URL: http://app:5000
