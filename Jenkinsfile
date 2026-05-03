@@ -50,7 +50,10 @@ pipeline {
 
         stage('Deploy app + DB') {
             steps {
-                sh 'docker compose up -d db app'
+                sh '''
+                    docker rm -f sms_db sms_app sms_tests 2>/dev/null || true
+                    docker compose up -d db app
+                '''
                 sh '''
                     echo "Waiting for app to become healthy..."
                     for i in $(seq 1 40); do
