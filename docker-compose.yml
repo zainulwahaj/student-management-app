@@ -49,6 +49,7 @@ services:
       context: ./tests
     image: sms_tests:latest
     container_name: sms_tests
+    shm_size: "2gb"
     environment:
       APP_URL: http://app:5000
     depends_on:

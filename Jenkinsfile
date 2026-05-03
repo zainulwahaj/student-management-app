@@ -50,7 +50,6 @@ pipeline {
 
         stage('Deploy app + DB') {
             steps {
-                sh 'docker compose down -v --remove-orphans || true'
                 sh 'docker compose up -d db app'
                 sh '''
                     echo "Waiting for app to become healthy..."
