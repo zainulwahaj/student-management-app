@@ -51,13 +51,14 @@ pipeline {
         stage('Deploy app + DB') {
             steps {
                 sh '''
-                    docker rm -f sms_db sms_app sms_tests 2>/dev/null || true
+                    docker compose down --remove-orphans || true
                     docker compose up -d db app
                 '''
                 sh '''
-                    echo "Waiting for sms_app Docker health=healthy (required for compose run tests)..."
+                    echo "Waiting for app Docker health=healthy (compose ps -q app)..."
                     for i in $(seq 1 100); do
-                        H=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' sms_app 2>/dev/null || echo "unknown")
+                        APP_CONTAINER=$(docker compose ps -q app)
+                        H=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$APP_CONTAINER" 2>/dev/null || echo "unknown")
                         if curl -fsS --max-time 2 "http://127.0.0.1:5000/" >/dev/null 2>&1; then HTTP=ok; else HTTP=no; fi
                         if [ "$H" = "healthy" ]; then
                             echo "  attempt $i: healthy (host_http=$HTTP)"
@@ -65,7 +66,7 @@ pipeline {
                         fi
                         if [ "$H" = "unhealthy" ]; then
                             echo "  attempt $i: UNHEALTHY (host_http=$HTTP)"
-                            docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                            docker inspect --format='{{json .State.Health}}' "$APP_CONTAINER" 2>/dev/null || true
                             docker compose logs --tail=200 app
                             exit 1
                         fi
@@ -73,7 +74,8 @@ pipeline {
                         sleep 2
                     done
                     echo "Timed out waiting for healthy."
-                    docker inspect --format='{{json .State.Health}}' sms_app 2>/dev/null || true
+                    APP_CONTAINER=$(docker compose ps -q app)
+                    docker inspect --format='{{json .State.Health}}' "$APP_CONTAINER" 2>/dev/null || true
                     docker compose logs --tail=200 app
                     exit 1
                 '''
@@ -98,6 +100,53 @@ pipeline {
                 def color   = (status == 'SUCCESS') ? '#1a7f37' : '#cf222e'
                 def emoji   = (status == 'SUCCESS') ? '✅' : '❌'
                 def subject = "${emoji} [Jenkins] ${env.JOB_NAME} #${env.BUILD_NUMBER} — ${status}"
+
+                def testSummaryHtml = '<p><b>Test summary:</b> JUnit report was not generated.</p>'
+                if (fileExists('tests/reports/junit.xml')) {
+                    def junitXml = readFile('tests/reports/junit.xml')
+                    def suiteTags = junitXml =~ /<testsuite\b[^>]*>/
+                    int tests = 0
+                    int failures = 0
+                    int errors = 0
+                    int skipped = 0
+                    double seconds = 0
+
+                    while (suiteTags.find()) {
+                        def tag = suiteTags.group(0)
+                        def attr = { name ->
+                            def matcher = tag =~ "\\b${name}=\"([^\"]*)\""
+                            matcher.find() ? matcher.group(1) : '0'
+                        }
+                        tests += attr('tests') as int
+                        failures += attr('failures') as int
+                        errors += attr('errors') as int
+                        skipped += attr('skipped') as int
+                        seconds += attr('time') as double
+                    }
+
+                    if (tests > 0) {
+                        int passed = tests - failures - errors - skipped
+                        def secondsLabel = String.format('%.2fs', seconds)
+                        testSummaryHtml = """
+                          <h3 style="margin:18px 0 8px">Test Summary</h3>
+                          <table cellpadding="6" style="border-collapse:collapse;width:100%;border:1px solid #ddd">
+                            <tr>
+                              <td><b>Total</b></td><td>${tests}</td>
+                              <td><b>Passed</b></td><td style="color:#1a7f37">${passed}</td>
+                            </tr>
+                            <tr>
+                              <td><b>Failed</b></td><td style="color:#cf222e">${failures}</td>
+                              <td><b>Errors</b></td><td style="color:#cf222e">${errors}</td>
+                            </tr>
+                            <tr>
+                              <td><b>Skipped</b></td><td>${skipped}</td>
+                              <td><b>Test time</b></td><td>${secondsLabel}</td>
+                            </tr>
+                          </table>
+                        """.stripIndent()
+                    }
+                }
+
                 def body    = """
                     <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;
                                 max-width:600px;padding:20px;border:1px solid #ddd;border-radius:8px">
@@ -109,6 +158,7 @@ pipeline {
                         <tr><td><b>Pushed by</b></td><td>${env.COMMITTER_NAME} &lt;${env.COMMITTER_EMAIL}&gt;</td></tr>
                         <tr><td><b>Duration</b></td><td>${currentBuild.durationString}</td></tr>
                       </table>
+                      ${testSummaryHtml}
                       <p style="margin-top:16px">
                         <a href="${env.BUILD_URL}" style="background:${color};color:#fff;padding:8px 14px;
                            border-radius:6px;text-decoration:none">Open build in Jenkins →</a>
